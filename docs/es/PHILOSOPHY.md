@@ -37,7 +37,7 @@ Esto garantiza que cada tarea produce un rastro de evidencia que puede ser revis
 
 ## 🛸 Cómo Funciona
 
-El agente sigue un estricto bucle "Think-Act-Reflect", simulando el proceso cognitivo de Gemini 3.
+El agente sigue un estricto bucle "Think-Act-Reflect", simulando el proceso cognitivo de Gemini 2.0 Flash.
 
 ```mermaid
 sequenceDiagram
