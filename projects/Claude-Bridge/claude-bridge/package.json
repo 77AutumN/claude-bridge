@@ -28,10 +28,12 @@
   "manifest": {
     "permissions": [
       "activeTab",
-      "scripting"
+      "scripting",
+      "tabs"
     ],
     "host_permissions": [
-      "https://claude.ai/*"
+      "https://*/*",
+      "http://*/*"
     ]
   }
 }

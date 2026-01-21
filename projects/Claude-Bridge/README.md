@@ -18,11 +18,17 @@
 - **退出**: 用户积累后出售 (MicroAcquire)
 
 ## 开发状态
-- [ ] 项目初始化
-- [ ] 内容脚本注入
-- [ ] 后台脚本实现
-- [ ] UI 优化
+- [x] 项目初始化 ✅
+- [x] 内容脚本注入 ✅
+- [x] 后台脚本实现 ✅
+- [x] UI 优化 ✅
 - [ ] Chrome Web Store 发布
+
+## 本地测试
+1. 打开 `chrome://extensions/`
+2. 开启「开发者模式」
+3. 点击「加载已解压的扩展程序」
+4. 选择: `claude-bridge/build/chrome-mv3-dev`
 
 ## 相关文档
 - [任务计划书](../handover_inbox/ClaudeBridge_MissionPlan.md)
