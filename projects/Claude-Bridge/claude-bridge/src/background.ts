@@ -21,11 +21,11 @@ async function handleCaptureActiveTab(senderTabId?: number): Promise<{
     error?: string
 }> {
     try {
-        // 获取所有标签页，找到最近活跃的非 Claude 标签页
+        // 获取当前窗口的所有标签页
         const tabs = await chrome.tabs.query({ currentWindow: true })
 
         // 过滤掉 Claude 页面和扩展页面
-        const targetTab = tabs.find(tab =>
+        const validTabs = tabs.filter(tab =>
             tab.id !== senderTabId &&
             tab.url &&
             !tab.url.includes("claude.ai") &&
@@ -33,20 +33,120 @@ async function handleCaptureActiveTab(senderTabId?: number): Promise<{
             !tab.url.startsWith("chrome-extension://")
         )
 
-        if (!targetTab || !targetTab.id) {
+        if (validTabs.length === 0) {
             return {
                 success: false,
                 error: "未找到可读取的标签页。请确保有其他网页标签页打开。"
             }
         }
 
+        // 选择 Claude 标签页左边的第一个标签页，如果左边没有则选右边第一个
+        // 找到 Claude 标签页的索引
+        const claudeTab = tabs.find(tab => tab.id === senderTabId)
+        const claudeIndex = claudeTab?.index || 0
+
+        // 按索引排序
+        validTabs.sort((a, b) => (a.index || 0) - (b.index || 0))
+
+        // 优先选择 Claude 左边的标签页（索引更小的）
+        let targetTab = validTabs.filter(tab => (tab.index || 0) < claudeIndex).pop()
+
+        // 如果左边没有，选择右边第一个
+        if (!targetTab) {
+            targetTab = validTabs.find(tab => (tab.index || 0) > claudeIndex)
+        }
+
+        // 还是没有的话，选第一个有效标签页
+        if (!targetTab) {
+            targetTab = validTabs[0]
+        }
+
+        if (!targetTab || !targetTab.id) {
+            return {
+                success: false,
+                error: "未找到可读取的标签页。"
+            }
+        }
+
         // 在目标标签页执行脚本提取内容
+        // 注意：这个函数必须完全自包含，不能引用外部变量或函数
         const results = await chrome.scripting.executeScript({
             target: { tabId: targetTab.id },
-            func: extractPageContent
+            func: () => {
+                // ========== 完全自包含的提取函数 ==========
+
+                // 清理文本的内联函数
+                const cleanText = (text: string, maxLength?: number): string => {
+                    let cleaned = text
+                        .replace(/\n{3,}/g, "\n\n")
+                        .replace(/[ \t]+/g, " ")
+                        .replace(/\n /g, "\n")
+                        .trim()
+
+                    const limit = maxLength || 15000
+                    if (cleaned.length > limit) {
+                        cleaned = cleaned.substring(0, limit) + "\n\n[内容已截断...]"
+                    }
+                    return cleaned
+                }
+
+                // 尝试多种选择器
+                const selectors = [
+                    "article",
+                    "main",
+                    ".markdown-body",
+                    "#mw-content-text",      // Wikipedia
+                    ".mw-parser-output",     // Wikipedia
+                    "#content",
+                    "#main-content",
+                    ".content",
+                    ".post-content",
+                    ".article-content",
+                    ".entry-content",
+                    "[role='main']"
+                ]
+
+                for (const selector of selectors) {
+                    const element = document.querySelector(selector)
+                    if (element) {
+                        const text = (element as HTMLElement).innerText?.trim()
+                        if (text && text.length > 100) {
+                            return cleanText(text)
+                        }
+                    }
+                }
+
+                // 后备方案：获取 body 内容，移除导航等
+                try {
+                    const bodyClone = document.body.cloneNode(true) as HTMLElement
+                    const removeSelectors = ["nav", "header", "footer", "aside", ".sidebar", ".navigation", ".menu", "script", "style", "noscript", "iframe"]
+                    removeSelectors.forEach(sel => {
+                        bodyClone.querySelectorAll(sel).forEach(el => el.remove())
+                    })
+                    const bodyText = bodyClone.innerText
+                    if (bodyText && bodyText.length > 50) {
+                        return cleanText(bodyText, 15000)
+                    }
+                } catch (e) {
+                    // ignore
+                }
+
+                // 最后后备：直接获取 body
+                return cleanText(document.body.innerText || "", 15000)
+            }
         })
 
         const content = results[0]?.result || ""
+
+        // 如果内容为空或太短，提示用户
+        if (!content || content.length < 50) {
+            return {
+                success: true,
+                title: targetTab.title || "无标题",
+                url: targetTab.url || "",
+                content: `[页面内容较少或无法提取]\n\n提取到 ${content.length} 字符`
+            }
+        }
 
         return {
             success: true,
@@ -61,44 +161,6 @@ async function handleCaptureActiveTab(senderTabId?: number): Promise<{
             error: `捕获失败: ${error instanceof Error ? error.message : String(error)}`
         }
     }
-}
-
-// 在目标页面执行的函数：提取页面主要内容
-function extractPageContent(): string {
-    // 尝试获取 article 或 main 标签内容
-    const article = document.querySelector("article")
-    if (article) {
-        return cleanText(article.innerText)
-    }
-
-    const main = document.querySelector("main")
-    if (main) {
-        return cleanText(main.innerText)
-    }
-
-    // 尝试获取 readme 内容 (GitHub)
-    const readme = document.querySelector(".markdown-body")
-    if (readme) {
-        return cleanText((readme as HTMLElement).innerText)
-    }
-
-    // 后备方案: 获取 body 文本，但限制长度
-    const bodyText = document.body.innerText
-    return cleanText(bodyText, 10000) // 限制 10000 字符
-}
-
-function cleanText(text: string, maxLength?: number): string {
-    // 清理多余空白
-    let cleaned = text
-        .replace(/\n{3,}/g, "\n\n")  // 多个换行变成两个
-        .replace(/[ \t]+/g, " ")      // 多个空格变成一个
-        .trim()
-
-    if (maxLength && cleaned.length > maxLength) {
-        cleaned = cleaned.substring(0, maxLength) + "\n\n[内容已截断...]"
-    }
-
-    return cleaned
 }
 
 export { }

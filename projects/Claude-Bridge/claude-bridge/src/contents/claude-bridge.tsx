@@ -39,28 +39,21 @@ const ClaudeBridgeButton = () => {
       })
 
       if (response.success) {
-        // 格式化捕获的内容 - 简化格式，避免 markdown 干扰
+        // 格式化捕获的内容
         const formattedContent = `[来源: ${response.title}]
 [URL: ${response.url}]
 
 ${response.content}`.trim()
 
-        // 尝试插入到 Claude 输入框
-        const editor = document.querySelector('[contenteditable="true"]') as HTMLElement
-        if (editor) {
-          // 聚焦编辑器
-          editor.focus()
+        // 复制到剪贴板
+        await navigator.clipboard.writeText(formattedContent)
 
-          // 使用 clipboard API 粘贴 (更可靠)
-          await navigator.clipboard.writeText(formattedContent)
-          document.execCommand('paste')
+        // 截取标题前15个字符显示
+        const shortTitle = response.title.length > 15
+          ? response.title.substring(0, 15) + "..."
+          : response.title
 
-          setStatus("📋 已复制，请按 Ctrl+V 粘贴")
-        } else {
-          // 复制到剪贴板作为后备方案
-          await navigator.clipboard.writeText(formattedContent)
-          setStatus("📋 已复制，请粘贴")
-        }
+        setStatus(`📋 已复制「${shortTitle}」，请 Ctrl+V`)
       } else {
         setStatus("❌ " + (response.error || "捕获失败"))
       }
