@@ -1,24 +1,101 @@
-# 盈利项目执行器 (Project 工作区)
+# 🌉 Claude Bridge
 
-**目标**: 盈利项目的核心执行引擎。
-**输入**: 情报工作区 (`D:\Intel_Briefing`) -> `handover_inbox/`
-**输出**: 部署在 `projects/` 中的应用程序
+<div align="center">
 
-## 🚀 活跃工作流
-1.  **检查移交 (Check Handover)**: 查看 `handover_inbox/` 中是否有新的计划书。
-2.  **运行工作流 (Run Workflow)**: 使用 `/process-handover` 启动新项目。
-3.  **实现 (Implement)**: 在 `projects/[项目名称]` 中构建 MVP。
+**让 Claude 网页版拥有「眼睛」— 读取其他标签页内容的 Chrome 扩展**
 
-## 📂 目录结构
-- `handover_inbox/`: 任务计划书 (Mission Plans) 的投放区。
-- `projects/`: 活跃项目的实现目录。
-- `src/`: 工作区自动化代理 (继承自 Antigravity Template)。
-- `.agent/workflows/`: 标准作业程序 (SOP)。
+*Chrome Extension to read other tab content into Claude AI*
 
-## 🔗 快速链接
-- [移交收件箱 (Handover Inbox)](handover_inbox/README.md)
-- [项目列表 (Project List)](projects/README.md)
-- [模板文档 (Template Documentation)](docs/en/README.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Plasmo](https://img.shields.io/badge/Built%20with-Plasmo-orange)](https://plasmo.com)
+[![Chrome MV3](https://img.shields.io/badge/Manifest-V3-blue)](https://developer.chrome.com/docs/extensions/mv3/)
+
+[🚀 快速开始](#-安装) · [📖 使用方法](#-使用方法) · [💡 最佳场景](#-最佳使用场景)
+
+</div>
 
 ---
-*基于 [Antigravity Workspace Template](https://github.com/study8677/antigravity-workspace-template)*
+
+## ✨ 功能
+
+- 📥 在 `claude.ai` 页面显示悬浮 Bridge 按钮
+- 🔍 一键捕获其他标签页的 **标题、URL 和正文内容**
+- 📋 自动复制到剪贴板，按 `Ctrl+V` 粘贴即可
+- 🎯 智能选择：优先捕获 Claude 左边最近的标签页
+
+---
+
+## 🚀 安装
+
+### 方式一：从源码构建
+
+```bash
+# 克隆仓库
+git clone https://github.com/77AutumN/claude-bridge.git
+cd claude-bridge/projects/Claude-Bridge/claude-bridge
+
+# 安装依赖并构建
+pnpm install
+pnpm build
+```
+
+### 方式二：直接下载
+
+1. [下载 ZIP](https://github.com/77AutumN/claude-bridge/archive/refs/heads/main.zip) 并解压
+2. 进入 `projects/Claude-Bridge/claude-bridge/build/chrome-mv3-prod` 目录
+
+### 加载到 Chrome
+
+1. 打开 `chrome://extensions/`
+2. 开启 **「开发者模式」**
+3. 点击 **「加载已解压的扩展程序」**
+4. 选择 `build/chrome-mv3-prod` 目录
+
+---
+
+## 📖 使用方法
+
+1. 打开想要分析的网页（如一篇文章、一条推文）
+2. 切换到 `claude.ai` 标签页
+3. 点击右下角的 **「📥 Bridge」** 按钮
+4. 按 `Ctrl+V` 粘贴内容
+5. 发送给 Claude！
+
+---
+
+## 💡 最佳使用场景
+
+| ✅ 适合 | ❌ 不适合 |
+|---------|-----------|
+| X/Twitter 帖子 | 信息流首页 |
+| 博客/文章页 | 纯图片页面 |
+| GitHub README | 需要登录的页面 |
+
+---
+
+## 🛠 技术栈
+
+- **Framework**: [Plasmo](https://plasmo.com) (React + TypeScript)
+- **Styling**: TailwindCSS  
+- **Manifest**: Chrome Extension Manifest V3
+
+---
+
+## 📁 项目结构
+
+```
+projects/Claude-Bridge/claude-bridge/
+├── src/
+│   ├── contents/claude-bridge.tsx  # Bridge 按钮组件
+│   ├── background.ts               # 内容捕获逻辑
+│   └── popup.tsx                   # 弹出窗口
+└── build/chrome-mv3-prod/          # 生产版本
+```
+
+---
+
+<div align="center">
+
+Made with ❤️ by [77AutumN](https://github.com/77AutumN)
+
+</div>
