@@ -1,19 +1,19 @@
-# Antigravity Coding Standards & Best Practices
+# 编码标准与最佳实践
 
-## Architecture
-1.  **Tool Isolation**: All external interactions (API calls, file I/O, system commands) MUST be encapsulated in functions within the `tools/` directory.
-    - *Why?* This allows the agent to easily "see" and "use" these capabilities as distinct tools.
-2.  **Pydantic Everywhere**: Use `pydantic` models for function arguments and return values where complex data is involved.
-    - *Why?* This ensures strict schema validation and provides clear type definitions for the LLM.
+## 架构原则
+1.  **工具隔离**: 所有外部交互（API 调用、文件 I/O、系统命令）**必须**封装在专用函数或模块中。
+    - *原因*: 这使得代理（Agent）能够轻松地"看到"并"使用"这些能力作为独立的工具。
+2.  **Pydantic 优先**: 在涉及复杂数据的场合，使用 `pydantic` 模型定义函数参数和返回值。
+    - *原因*: 这确保了严格的模式验证，并为 LLM 提供了清晰的类型定义。
 
-## Python Style
-1.  **Type Hints**: Mandatory for all function signatures.
+## Python 风格
+1.  **类型提示**: 所有函数签名**必须**包含类型提示。
     - `def my_func(a: int, b: str) -> bool:`
-2.  **Docstrings**: Google-style docstrings are required.
-    - Include `Args:`, `Returns:`, and `Raises:` sections.
-    - *Why?* The agent uses these docstrings to understand how to use the tools.
+2.  **文档字符串**: 必须使用 Google 风格的文档字符串。
+    - 包含 `Args:`, `Returns:`, `Raises:` 等部分。
+    - *原因*: 代理使用这些文档字符串来理解如何使用工具。
 
-## Agent Design Patterns
-1.  **Stateless Tools**: Tools should generally be stateless. Pass necessary context (like IDs or tokens) as arguments.
-2.  **Fail Gracefully**: Tools should return error messages or status codes rather than crashing, allowing the agent to recover.
-3.  **Deep Think Simulation**: When writing complex logic, include comments or a separate design document that outlines the "thought process" or decision tree.
+## 代理设计模式
+1.  **无状态工具**: 工具应该是无状态的。将必要的上下文（如 ID 或令牌）作为参数传递。
+2.  **优雅失败**: 工具应返回错误消息或状态码，而非直接崩溃，以便代理可以恢复。
+3.  **深度思考模拟**: 编写复杂逻辑时，包含注释或单独的设计文档，概述"思考过程"或决策树。
